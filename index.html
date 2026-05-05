@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐢 海龟汤生成器 · 六大类别 · 五档难度</title>
+<style>
+  :root {
+    --bg: #faf9f6;
+    --card-bg: #ffffff;
+    --text: #2c2c2c;
+    --text-secondary: #777;
+    --text-muted: #bbb;
+    --border: #e8e5df;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+    --shadow: 0 4px 16px rgba(0,0,0,0.07);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --radius-xs: 6px;
+
+    /* Category colors */
+    --cat-daily: #f59e0b;
+    --cat-daily-bg: #fffbeb;
+    --cat-daily-border: #fde68a;
+    --cat-crime: #7c3aed;
+    --cat-crime-bg: #f5f3ff;
+    --cat-crime-border: #c4b5fd;
+    --cat-horror: #6366f1;
+    --cat-horror-bg: #eef2ff;
+    --cat-horror-border: #a5b4fc;
+    --cat-twist: #0891b2;
+    --cat-twist-bg: #ecfeff;
+    --cat-twist-border: #67e8f9;
+    --cat-heart: #ec4899;
+    --cat-heart-bg: #fdf2f8;
+    --cat-heart-border: #f9a8d4;
+    --cat-funny: #f97316;
+    --cat-funny-bg: #fff7ed;
+    --cat-funny-border: #fdba74;
+
+    /* Difficulty colors */
+    --diff-beginner: #10b981;
+    --diff-intermediate: #3b82f6;
+    --diff-hard: #ef4444;
+    --diff-brain: #f59e0b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* === Background texture === */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 80%, rgba(245,158,11,0.03) 0%, transparent 40%),
+      radial-gradient(circle at 80% 20%, rgba(124,58,237,0.03) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(8,145,178,0.02) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 28px 20px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* === Header === */
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .header .icon {
+    font-size: 56px;
+    display: block;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    30% { transform: translateY(-10px) rotate(2deg); }
+    60% { transform: translateY(-4px) rotate(-1deg); }
+  }
+
+  .header h1 {
+    font-size: 2.2em;
+    font-weight: 900;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, #6366f1, #7c3aed, #ec4899, #f59e0b);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 6s ease infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .header .subtitle {
+    color: var(--text-secondary);
+    font-size: 0.95em;
+    margin-top: 4px;
+  }
+
+  /* === Category Selector === */
+  .category-section {
+    margin-bottom: 24px;
+  }
+
+  .category-label {
+    font-size: 0.82em;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+  }
+
+  .cat-chip {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 10px 14px;
+    border-radius: var(--radius-sm);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: white;
+    box-shadow: var(--shadow-sm);
+    user-select: none;
+    text-align: center;
+  }
+
+  .cat-chip:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+  }
+
+  .cat-chip:active {
+    transform: scale(0.96);
+  }
+
+  .cat-chip .cat-icon {
+    font-size: 28px;
+    transition: transform 0.3s;
+  }
+
+  .cat-chip:hover .cat-icon {
+    transform: scale(1.15);
+  }
+
+  .cat-chip .cat-name {
+    font-size: 0.82em;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    transition: color 0.2s;
+  }
+
+  .cat-chip .cat-desc {
+    font-size: 0.68em;
+    color: var(--text-muted);
+    display: none;
+  }
+
+  /* Category-specific active states */
+  .cat-chip[data-cat="生活日常类"].active { border-color: var(--cat-daily); background: var(--cat-daily-bg); box-shadow: 0 0 0 4px rgba(245,158,11,0.1); }
+  .cat-chip[data-cat="生活日常类"].active .cat-name { color: var(--cat-daily); }
+  .cat-chip[data-cat="悬疑犯罪类"].active { border-color: var(--cat-crime); background: var(--cat-crime-bg); box-shadow: 0 0 0 4px rgba(124,58,237,0.1); }
+  .cat-chip[data-cat="悬疑犯罪类"].active .cat-name { color: var(--cat-crime); }
+  .cat-chip[data-cat="细思极恐类"].active { border-color: var(--cat-horror); background: var(--cat-horror-bg); box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
+  .cat-chip[data-cat="细思极恐类"].active .cat-name { color: var(--cat-horror); }
+  .cat-chip[data-cat="脑洞反转类"].active { border-color: var(--cat-twist); background: var(--cat-twist-bg); box-shadow: 0 0 0 4px rgba(8,145,178,0.1); }
+  .cat-chip[data-cat="脑洞反转类"].active .cat-name { color: var(--cat-twist); }
+  .cat-chip[data-cat="温情治愈类"].active { border-color: var(--cat-heart); background: var(--cat-heart-bg); box-shadow: 0 0 0 4px rgba(236,72,153,0.1); }
+  .cat-chip[data-cat="温情治愈类"].active .cat-name { color: var(--cat-heart); }
+  .cat-chip[data-cat="沙雕搞笑类"].active { border-color: var(--cat-funny); background: var(--cat-funny-bg); box-shadow: 0 0 0 4px rgba(249,115,22,0.1); }
+  .cat-chip[data-cat="沙雕搞笑类"].active .cat-name { color: var(--cat-funny); }
+
+  /* Ripple */
+  .cat-chip .ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.15;
+    transform: scale(0);
+    animation: ripple 0.6s ease-out forwards;
+    pointer-events: none;
+  }
+
+  @keyframes ripple {
+    to { transform: scale(4); opacity: 0; }
+  }
+
+  /* === Input Area === */
+  .input-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    margin-bottom: 32px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .input-row input {
+    flex: 1;
+    padding: 14px 18px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 1.05em;
+    background: #fefefe;
+    transition: all 0.2s;
+    font-family: inherit;
+    color: var(--text);
+  }
+
+  .input-row input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.08);
+  }
+
+  .input-row input::placeholder { color: #c5c0b8; }
+
+  .btn-generate {
+    padding: 14px 30px;
+    background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 1.05em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-generate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(99,102,241,0.35);
+  }
+
+  .btn-generate:active { transform: scale(0.97); }
+
+  .btn-generate:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .btn-generate .btn-icon { margin-right: 6px; }
+
+  .btn-surprise {
+    padding: 14px 18px;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 1.05em;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-surprise:hover {
+    border-color: #f59e0b;
+    color: #f59e0b;
+    background: #fffbeb;
+  }
+
+  /* === Quick topics === */
+  .quick-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    align-items: center;
+  }
+
+  .quick-topics .hint {
+    font-size: 0.78em;
+    color: var(--text-muted);
+    margin-right: 4px;
+  }
+
+  .quick-tag {
+    padding: 6px 14px;
+    background: #f5f4f1;
+    border: 1px solid transparent;
+    border-radius: 20px;
+    font-size: 0.84em;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  .quick-tag:hover {
+    background: white;
+    border-color: #6366f1;
+    color: #6366f1;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* === Active filters bar === */
+  .active-filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+    min-height: 0;
+    transition: all 0.3s;
+  }
+
+  .filter-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.82em;
+    font-weight: 700;
+    animation: fadeInUp 0.3s ease;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* === Results header === */
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    animation: fadeInUp 0.4s ease;
+  }
+
+  .results-header h2 {
+    font-size: 1.15em;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .results-header .count {
+    font-size: 0.82em;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  /* === Stories grid === */
+  .stories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 20px;
+  }
+
+  /* === Story Card === */
+  .story-card {
+    background: white;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: cardEnter 0.5s ease backwards;
+    position: relative;
+  }
+
+  .story-card:nth-child(1) { animation-delay: 0.05s; }
+  .story-card:nth-child(2) { animation-delay: 0.12s; }
+  .story-card:nth-child(3) { animation-delay: 0.19s; }
+  .story-card:nth-child(4) { animation-delay: 0.26s; }
+  .story-card:nth-child(5) { animation-delay: 0.33s; }
+
+  @keyframes cardEnter {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .story-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-3px);
+  }
+
+  /* Card accent bar */
+  .story-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    transition: height 0.2s;
+  }
+
+  .story-card:hover::before { height: 6px; }
+
+  .story-card[data-cat="生活日常类"]::before { background: var(--cat-daily); }
+  .story-card[data-cat="悬疑犯罪类"]::before { background: var(--cat-crime); }
+  .story-card[data-cat="细思极恐类"]::before { background: var(--cat-horror); }
+  .story-card[data-cat="脑洞反转类"]::before { background: var(--cat-twist); }
+  .story-card[data-cat="温情治愈类"]::before { background: var(--cat-heart); }
+  .story-card[data-cat="沙雕搞笑类"]::before { background: var(--cat-funny); }
+
+  .card-header {
+    padding: 20px 22px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .card-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.73em;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .badge-cat {
+    background: #f5f4f1;
+    color: var(--text-secondary);
+  }
+
+  .badge-diff { color: white; }
+  .badge-diff.beginner { background: var(--diff-beginner); }
+  .badge-diff.intermediate { background: var(--diff-intermediate); }
+  .badge-diff.hard { background: var(--diff-hard); }
+  .badge-diff.brain { background: var(--diff-brain); }
+
+  .card-number {
+    font-size: 0.8em;
+    color: var(--text-muted);
+    font-weight: 700;
+  }
+
+  /* Soup section */
+  .card-soup {
+    padding: 16px 22px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .card-soup:hover { background: #fafaf9; }
+
+  .soup-label {
+    font-size: 0.73em;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .soup-text {
+    font-size: 0.96em;
+    line-height: 1.8;
+    color: var(--text);
+    position: relative;
+    padding-left: 14px;
+    border-left: 3px solid #e8e5df;
+    transition: border-color 0.3s;
+  }
+
+  .story-card[data-cat="生活日常类"] .soup-text { border-left-color: var(--cat-daily-border); }
+  .story-card[data-cat="悬疑犯罪类"] .soup-text { border-left-color: var(--cat-crime-border); }
+  .story-card[data-cat="细思极恐类"] .soup-text { border-left-color: var(--cat-horror-border); }
+  .story-card[data-cat="脑洞反转类"] .soup-text { border-left-color: var(--cat-twist-border); }
+  .story-card[data-cat="温情治愈类"] .soup-text { border-left-color: var(--cat-heart-border); }
+  .story-card[data-cat="沙雕搞笑类"] .soup-text { border-left-color: var(--cat-funny-border); }
+
+  .soup-preview-hint {
+    font-size: 0.75em;
+    color: var(--text-muted);
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Truth section */
+  .card-truth {
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #fafaf9;
+    border-top: 1px solid transparent;
+  }
+
+  .card-truth.open {
+    max-height: 300px;
+    opacity: 1;
+    border-top-color: var(--border);
+  }
+
+  .truth-inner {
+    padding: 16px 22px 20px;
+  }
+
+  .truth-label {
+    font-size: 0.73em;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .truth-text {
+    font-size: 0.94em;
+    line-height: 1.8;
+    color: #555;
+    padding-left: 14px;
+    border-left: 3px solid #e0dcd5;
+  }
+
+  /* Reveal button */
+  .card-actions {
+    padding: 0 22px 18px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn-reveal {
+    padding: 8px 18px;
+    background: #f5f4f1;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 0.84em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s;
+    color: var(--text-secondary);
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-reveal:hover {
+    background: #6366f1;
+    color: white;
+    border-color: #6366f1;
+    box-shadow: 0 4px 12px rgba(99,102,241,0.25);
+  }
+
+  .btn-reveal.revealed {
+    background: #f0eefc;
+    border-color: #c4b5fd;
+    color: #7c3aed;
+  }
+
+  .btn-reveal .arrow {
+    transition: transform 0.3s;
+    display: inline-block;
+  }
+
+  .btn-reveal.revealed .arrow {
+    transform: rotate(180deg);
+  }
+
+  /* === Loading Status Bar === */
+  .loading-status {
+    background: white;
+    border-radius: var(--radius);
+    padding: 16px 22px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    animation: fadeInUp 0.3s ease;
+  }
+  .loading-status .speed-icon {
+    font-size: 1.6em;
+    animation: float 0.6s ease-in-out infinite;
+  }
+  .loading-status .status-info { flex: 1; min-width: 0; }
+  .loading-status .status-title { font-weight: 700; font-size: 0.9em; color: var(--text); }
+  .loading-status .status-sub { font-size: 0.78em; color: var(--text-muted); margin-top: 2px; }
+  .loading-status .timer {
+    font-weight: 800; font-size: 1.3em; color: #6366f1;
+    font-family: 'SF Mono', 'Consolas', 'Menlo', monospace; white-space: nowrap;
+  }
+
+  /* === Skeleton Loading === */
+  .skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 20px;
+  }
+
+  .skeleton-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 22px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .skeleton-bar {
+    height: 12px;
+    background: linear-gradient(90deg, #f0ede5 25%, #e8e5df 50%, #f0ede5 75%);
+    background-size: 200% 100%;
+    border-radius: 6px;
+    animation: shimmer 2s infinite;
+  }
+
+  .skeleton-bar.short { width: 35%; margin-bottom: 16px; }
+  .skeleton-bar.medium { width: 70%; margin-bottom: 10px; }
+  .skeleton-bar.long { width: 90%; margin-bottom: 10px; }
+  .skeleton-bar.full { width: 100%; margin-bottom: 10px; }
+  .skeleton-bar.xshort { width: 25%; margin-top: 14px; }
+
+  .skeleton-badges {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .skeleton-badge {
+    width: 56px;
+    height: 22px;
+    border-radius: 20px;
+    background: linear-gradient(90deg, #f0ede5 25%, #e8e5df 50%, #f0ede5 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* === Empty State === */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    animation: fadeInUp 0.5s ease;
+  }
+
+  .empty-state .mascot {
+    font-size: 80px;
+    display: block;
+    margin-bottom: 20px;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .empty-state h3 {
+    font-size: 1.3em;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .empty-state p {
+    color: var(--text-secondary);
+    font-size: 0.95em;
+    line-height: 1.8;
+    max-width: 420px;
+    margin: 0 auto 20px;
+  }
+
+  .empty-steps {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .empty-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85em;
+    color: var(--text-muted);
+  }
+
+  .empty-step .step-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #6366f1;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78em;
+    font-weight: 800;
+  }
+
+  /* === Error === */
+  .error-toast {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    padding: 14px 20px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    animation: fadeInUp 0.3s ease;
+    font-size: 0.92em;
+  }
+
+  .error-toast .retry-link {
+    color: #dc2626;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  /* === Guide tooltip === */
+  .guide-tip {
+    background: #f5f3ff;
+    border: 1px solid #c4b5fd;
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    font-size: 0.85em;
+    color: #5b21b6;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    animation: fadeInUp 0.4s ease;
+    line-height: 1.6;
+  }
+
+  .guide-tip .tip-icon { font-size: 1.3em; flex-shrink: 0; }
+
+  /* === Footer === */
+  .footer {
+    text-align: center;
+    padding: 40px 20px 20px;
+    color: var(--text-muted);
+    font-size: 0.82em;
+  }
+
+  /* === Confetti (on generate) === */
+  .confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    top: -20px;
+    animation: confettiFall 1.5s ease-in forwards;
+  }
+
+  @keyframes confettiFall {
+    0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg) scale(0.3); opacity: 0; }
+  }
+
+  /* === Responsive === */
+  @media (max-width: 768px) {
+    .category-grid { grid-template-columns: repeat(3, 1fr); }
+    .stories-grid, .skeleton-grid { grid-template-columns: 1fr; }
+    .input-row { flex-direction: column; }
+    .header h1 { font-size: 1.6em; }
+    .empty-steps { flex-direction: column; align-items: center; gap: 12px; }
+  }
+
+  @media (max-width: 400px) {
+    .category-grid { grid-template-columns: repeat(2, 1fr); }
+    .card-header { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <span class="icon">🐢</span>
+    <h1>海龟汤生成器</h1>
+    <p class="subtitle">选类别 · 定主题 · 熬一锅好汤</p>
+  </div>
+
+  <!-- Category Selector -->
+  <div class="category-section">
+    <div class="category-label">🎭 选择类别</div>
+    <div class="category-grid" id="categoryGrid">
+      <div class="cat-chip active" data-cat="生活日常类" onclick="selectCategory(this)">
+        <span class="cat-icon">🏠</span>
+        <span class="cat-name">生活日常</span>
+      </div>
+      <div class="cat-chip" data-cat="悬疑犯罪类" onclick="selectCategory(this)">
+        <span class="cat-icon">🔍</span>
+        <span class="cat-name">悬疑犯罪</span>
+      </div>
+      <div class="cat-chip" data-cat="细思极恐类" onclick="selectCategory(this)">
+        <span class="cat-icon">👁️</span>
+        <span class="cat-name">细思极恐</span>
+      </div>
+      <div class="cat-chip" data-cat="脑洞反转类" onclick="selectCategory(this)">
+        <span class="cat-icon">🌀</span>
+        <span class="cat-name">脑洞反转</span>
+      </div>
+      <div class="cat-chip" data-cat="温情治愈类" onclick="selectCategory(this)">
+        <span class="cat-icon">💝</span>
+        <span class="cat-name">温情治愈</span>
+      </div>
+      <div class="cat-chip" data-cat="沙雕搞笑类" onclick="selectCategory(this)">
+        <span class="cat-icon">🤪</span>
+        <span class="cat-name">沙雕搞笑</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="input-card">
+    <div class="input-row">
+      <input
+        id="topicInput"
+        type="text"
+        placeholder="输入任意主题，比如：外卖、电梯、深夜加班、相亲..."
+        maxlength="50"
+        autocomplete="off"
+        onkeydown="if(event.key==='Enter')generate()"
+      />
+      <button class="btn-generate" id="btnGenerate" onclick="generate()">
+        <span class="btn-icon">🔥</span> 生成海龟汤
+      </button>
+      <button class="btn-surprise" onclick="surpriseMe()" title="随机主题">
+        🎲
+      </button>
+    </div>
+    <div class="quick-topics">
+      <span class="hint">💡 试试：</span>
+      <span class="quick-tag" onclick="quickGenerate('加班')">加班</span>
+      <span class="quick-tag" onclick="quickGenerate('摸鱼')">摸鱼</span>
+      <span class="quick-tag" onclick="quickGenerate('地铁末班车')">地铁末班车</span>
+      <span class="quick-tag" onclick="quickGenerate('外卖')">外卖</span>
+      <span class="quick-tag" onclick="quickGenerate('合租室友')">合租室友</span>
+      <span class="quick-tag" onclick="quickGenerate('年终奖')">年终奖</span>
+      <span class="quick-tag" onclick="quickGenerate('相亲')">相亲</span>
+      <span class="quick-tag" onclick="quickGenerate('手机')">手机</span>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div id="mainContent">
+    <!-- Empty State (default) -->
+    <div class="empty-state" id="emptyState">
+      <span class="mascot">🍲</span>
+      <h3>准备好熬一锅好汤了吗？</h3>
+      <p>选择类别，输入你感兴趣的主题，AI 将为你生成 5 个不同难度的海龟汤段子</p>
+      <div class="empty-steps">
+        <div class="empty-step"><span class="step-num">1</span> 选择类别</div>
+        <div class="empty-step"><span class="step-num">2</span> 输入主题</div>
+        <div class="empty-step"><span class="step-num">3</span> 点击生成</div>
+        <div class="empty-step"><span class="step-num">4</span> 推理 & 揭晓</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    🐢 海龟汤生成器 · 六大类别 × 五档难度 · 每一口都是惊喜
+  </div>
+</div>
+
+<!-- Confetti container -->
+<div class="confetti-container" id="confetti"></div>
+
+<script>
+  let selectedCategory = '生活日常类';
+
+  // === Category Selection ===
+  function selectCategory(chip) {
+    document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    selectedCategory = chip.dataset.cat;
+
+    // Ripple effect
+    const ripple = document.createElement('span');
+    ripple.className = 'ripple';
+    const size = Math.max(chip.offsetWidth, chip.offsetHeight);
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = '50%';
+    ripple.style.top = '50%';
+    ripple.style.marginLeft = -size/2 + 'px';
+    ripple.style.marginTop = -size/2 + 'px';
+    chip.appendChild(ripple);
+    ripple.addEventListener('animationend', () => ripple.remove());
+  }
+
+  // === Quick Generate ===
+  function quickGenerate(topic) {
+    document.getElementById('topicInput').value = topic;
+    generate();
+  }
+
+  // === Surprise Me ===
+  const surpriseTopics = [
+    '电梯', '深夜便利店', '自动回复', '小区流浪猫', '前同事',
+    '监控摄像头', '冰箱里的东西', '快递柜', '朋友圈', '隔壁工位',
+    '失眠', '相亲角', '健身房', '停车位', '公司群消息'
+  ];
+
+  function surpriseMe() {
+    const topic = surpriseTopics[Math.floor(Math.random() * surpriseTopics.length)];
+    document.getElementById('topicInput').value = topic;
+    document.getElementById('topicInput').style.animation = 'none';
+    document.getElementById('topicInput').offsetHeight;
+    document.getElementById('topicInput').style.animation = 'fadeInUp 0.3s ease';
+    generate();
+  }
+
+  // === Difficulty config ===
+  const diffConfig = {
+    '入门': { class: 'beginner', icon: '🌱', label: '入门' },
+    '进阶': { class: 'intermediate', icon: '🧩', label: '进阶' },
+    '烧脑': { class: 'hard', icon: '🔥', label: '烧脑' },
+    '脑筋急转弯': { class: 'brain', icon: '💡', label: '脑筋急转弯' },
+  };
+
+  const catIcons = {
+    '生活日常类': '🏠',
+    '悬疑犯罪类': '🔍',
+    '细思极恐类': '👁️',
+    '脑洞反转类': '🌀',
+    '温情治愈类': '💝',
+    '沙雕搞笑类': '🤪',
+  };
+
+  // === Main Generate ===
+  async function generate() {
+    const input = document.getElementById('topicInput');
+    const btn = document.getElementById('btnGenerate');
+    const topic = input.value.trim();
+
+    if (!topic) {
+      input.focus();
+      input.style.borderColor = '#fca5a5';
+      input.style.boxShadow = '0 0 0 4px rgba(239,68,68,0.12)';
+      setTimeout(() => { input.style.borderColor = ''; input.style.boxShadow = ''; }, 1500);
+      return;
+    }
+
+    const startTime = Date.now();
+    btn.disabled = true;
+    btn.innerHTML = '<span style="display:inline-block;animation:float 0.6s ease-in-out infinite">⚡</span> 并发熬汤中...';
+
+    document.getElementById('emptyState').style.display = 'none';
+    ['loadingStatus','skeletonArea','errorArea','resultsArea'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.remove();
+    });
+
+    document.getElementById('mainContent').insertAdjacentHTML('afterbegin',
+      '<div id="loadingStatus">' + renderLoadingStatus() + '</div>' +
+      '<div id="skeletonArea">' + renderSkeletons() + '</div>'
+    );
+
+    const timerEl = document.getElementById('genTimer');
+    const timerInterval = setInterval(() => {
+      if (timerEl) timerEl.textContent = ((Date.now() - startTime) / 1000).toFixed(1) + 's';
+    }, 100);
+
+    document.getElementById('loadingStatus').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic, category: selectedCategory }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || '未知错误');
+
+      clearInterval(timerInterval);
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+
+      ['loadingStatus','skeletonArea'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.remove();
+      });
+
+      document.getElementById('mainContent').insertAdjacentHTML('afterbegin',
+        renderResults(topic, data.stories, elapsed)
+      );
+      spawnConfetti();
+      document.getElementById('resultsArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (err) {
+      clearInterval(timerInterval);
+      ['loadingStatus','skeletonArea'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.remove();
+      });
+      document.getElementById('mainContent').insertAdjacentHTML('afterbegin', `
+        <div id="errorArea" class="error-toast">
+          😵 ${escapeHtml(err.message)}
+          <span class="retry-link" onclick="this.closest('#errorArea').remove(); generate();">重试</span>
+          <span style="cursor:pointer;margin-left:8px;color:#999" onclick="this.closest('#errorArea').remove();document.getElementById('emptyState').style.display='';">✕</span>
+        </div>`);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="btn-icon">🔥</span> 生成海龟汤';
+    }
+  }
+
+  // === Loading Status Bar ===
+  function renderLoadingStatus() {
+    return '<div class="loading-status"><span class="speed-icon">⚡</span><div class="status-info"><div class="status-title">5 路并发熬汤中...</div><div class="status-sub">每个难度独立生成，预计 3~5 秒完成</div></div><div class="timer" id="genTimer">0.0s</div></div>';
+  }
+
+  // === Render Skeletons ===
+  function renderSkeletons() {
+    let html = '<div class="skeleton-grid">';
+    for (let i = 0; i < 5; i++) {
+      html += `
+        <div class="skeleton-card">
+          <div class="skeleton-badges">
+            <div class="skeleton-badge"></div>
+            <div class="skeleton-badge" style="width:42px"></div>
+          </div>
+          <div class="skeleton-bar short"></div>
+          <div class="skeleton-bar full"></div>
+          <div class="skeleton-bar medium"></div>
+          <div class="skeleton-bar long"></div>
+          <div class="skeleton-bar xshort"></div>
+        </div>`;
+    }
+    html += '</div>';
+    return html;
+  }
+
+  // === Render Results ===
+  function renderResults(topic, stories, elapsed) {
+    let html = '<div id="resultsArea">';
+
+    // Guide tip
+    html += `
+      <div class="guide-tip">
+        <span class="tip-icon">💡</span>
+        <span>点击<strong>汤面区域</strong>或<strong>「查看汤底」</strong>按钮揭晓答案。汤面是谜题，汤底是真相 —— 先猜再看更有趣！</span>
+      </div>`;
+
+    // Active filters
+    html += `
+      <div class="active-filters">
+        <span class="filter-badge" style="background:#f5f3ff;color:#7c3aed;">🎯 ${escapeHtml(topic)}</span>
+        <span class="filter-badge" style="background:#fffbeb;color:#f59e0b;">${catIcons[selectedCategory] || ''} ${escapeHtml(selectedCategory)}</span>
+        <span style="font-size:0.82em;color:var(--text-muted)">→ 生成 5 个海龟汤</span>
+      </div>`;
+
+    // Results header
+    html += `
+      <div class="results-header">
+        <h2>🍲 新鲜出炉的海龟汤</h2>
+        <span class="count">⚡ ${elapsed || '?'}秒 · 2 入门 · 1 进阶 · 1 烧脑 · 1 脑筋急转弯</span>
+      </div>`;
+
+    // Cards grid
+    html += '<div class="stories-grid">';
+    stories.forEach((s, i) => {
+      const diff = diffConfig[s.difficulty] || diffConfig['入门'];
+      const catIcon = catIcons[s.category] || '';
+      html += `
+        <div class="story-card" data-cat="${escapeHtml(s.category || selectedCategory)}">
+          <div class="card-header">
+            <div class="card-meta">
+              <span class="badge badge-cat">${catIcon} ${escapeHtml(s.category || selectedCategory)}</span>
+              <span class="badge badge-diff ${diff.class}">${diff.icon} ${diff.label}</span>
+            </div>
+            <span class="card-number">#${i + 1}</span>
+          </div>
+          <div class="card-soup" onclick="toggleTruth(${i}, this)">
+            <div class="soup-label">🥣 汤面</div>
+            <div class="soup-text">${escapeHtml(s.soup)}</div>
+            <div class="soup-preview-hint">👆 点击汤面或下方按钮揭晓汤底</div>
+          </div>
+          <div class="card-truth" id="truth-${i}">
+            <div class="truth-inner">
+              <div class="truth-label">🥄 汤底揭晓</div>
+              <div class="truth-text">${escapeHtml(s.truth)}</div>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button class="btn-reveal" id="btn-${i}" onclick="event.stopPropagation(); toggleTruth(${i}, this)">
+              👁️ 查看汤底 <span class="arrow">▾</span>
+            </button>
+          </div>
+        </div>`;
+    });
+    html += '</div></div>';
+
+    return html;
+  }
+
+  // === Toggle Truth ===
+  function toggleTruth(index, triggerEl) {
+    const truthEl = document.getElementById('truth-' + index);
+    const btn = document.getElementById('btn-' + index);
+    const isOpen = truthEl.classList.contains('open');
+
+    if (isOpen) {
+      truthEl.classList.remove('open');
+      if (btn) {
+        btn.classList.remove('revealed');
+        btn.innerHTML = '👁️ 查看汤底 <span class="arrow">▾</span>';
+      }
+    } else {
+      truthEl.classList.add('open');
+      if (btn) {
+        btn.classList.add('revealed');
+        btn.innerHTML = '🙈 收起汤底 <span class="arrow">▾</span>';
+      }
+      // Scroll into view if needed
+      setTimeout(() => {
+        const rect = truthEl.getBoundingClientRect();
+        if (rect.bottom > window.innerHeight) {
+          truthEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 400);
+    }
+  }
+
+  // === Confetti ===
+  function spawnConfetti() {
+    const container = document.getElementById('confetti');
+    const colors = ['#6366f1','#7c3aed','#ec4899','#f59e0b','#10b981','#f97316','#0891b2','#ef4444'];
+    let html = '';
+    for (let i = 0; i < 40; i++) {
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const left = Math.random() * 100;
+      const delay = Math.random() * 0.5;
+      const size = 6 + Math.random() * 8;
+      const shape = Math.random() > 0.5 ? '50%' : '2px';
+      html += `<div class="confetti-piece" style="
+        left:${left}%;
+        background:${color};
+        width:${size}px;
+        height:${size}px;
+        border-radius:${shape};
+        animation-delay:${delay}s;
+      "></div>`;
+    }
+    container.innerHTML = html;
+    setTimeout(() => container.innerHTML = '', 2000);
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+</script>
+</body>
+</html>
